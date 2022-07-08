@@ -10,7 +10,7 @@ const cors = require('cors');
 app.use(cors());
 
 //connexion à la bdd
-mongoose.connect(process.env.MONGODB_ATLAS_URI);
+mongoose.connect(process.env.MONGODB_URI);
 
 const app = express();
 app.use(express.json());
