@@ -1,23 +1,23 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const cloudinary = require("cloudinary").v2;
-const fileUpload = require("express-fileupload");
+const cloudinary = require('cloudinary').v2;
+const fileUpload = require('express-fileupload');
 
 cloudinary.config({
-  cloud_name: "",
-  api_key: "",
-  api_secret: "",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
 });
 
-const Offer = require("../models/Offer");
-const User = require("../models/User");
+const Offer = require('../models/Offer');
+const User = require('../models/User');
 
 // 1 Créer une offre sans ref sans photo et sans le middleware
 // 2 Créer une offre sans ref avec une photo
 // 3 Créer une offre avec une ref avec une photo et avec le middleware
 
 const convertToBase64 = (file) => {
-  return `data:${file.mimetype};base64,${file.data.toString("base64")}`;
+  return `data:${file.mimetype};base64,${file.data.toString('base64')}`;
 };
 
 const isAuthenticated = async (req, res, next) => {
@@ -25,7 +25,7 @@ const isAuthenticated = async (req, res, next) => {
   // Cette condition sert à vérifier si j'envoie un token
   if (req.headers.authorization) {
     const user = await User.findOne({
-      token: req.headers.authorization.replace("Bearer ", ""),
+      token: req.headers.authorization.replace('Bearer ', '')
     });
     // Cette condition sert à vérifier si j'envoie un token valide !
 
@@ -35,15 +35,15 @@ const isAuthenticated = async (req, res, next) => {
       req.user = user;
       next();
     } else {
-      res.status(401).json({ error: "Token présent mais non valide !" });
+      res.status(401).json({ error: 'Token présent mais non valide !' });
     }
   } else {
-    res.status(401).json({ error: "Token non envoyé !" });
+    res.status(401).json({ error: 'Token non envoyé !' });
   }
 };
 
 router.post(
-  "/offer/publish",
+  '/offer/publish',
   isAuthenticated,
   fileUpload(),
   async (req, res) => {
@@ -59,9 +59,9 @@ router.post(
           { TAILLE: req.body.size },
           { ETAT: req.body.condition },
           { COULEUR: req.body.color },
-          { EMPLACEMENT: req.body.city },
+          { EMPLACEMENT: req.body.city }
         ],
-        owner: req.user,
+        owner: req.user
       });
 
       //J'envoie mon image sur cloudinary, juste après avoir crée en DB mon offre
@@ -69,8 +69,8 @@ router.post(
       const result = await cloudinary.uploader.upload(
         convertToBase64(req.files.picture),
         {
-          folder: "vinted/offers",
-          public_id: `${req.body.title} - ${newOffer._id}`,
+          folder: 'vinted/offers',
+          public_id: `${req.body.title} - ${newOffer._id}`
           //Old WAY JS
           // public_id: req.body.title + " " + newOffer._id,
         }
@@ -89,11 +89,11 @@ router.post(
   }
 );
 
-router.get("/offers", async (req, res) => {
+router.get('/offers', async (req, res) => {
   const filtersObject = {};
 
   if (req.query.title) {
-    filtersObject.product_name = new RegExp(req.query.title, "i");
+    filtersObject.product_name = new RegExp(req.query.title, 'i');
   }
 
   if (req.query.priceMin) {
@@ -114,10 +114,10 @@ router.get("/offers", async (req, res) => {
   //gestion du tri avec l'objet sortObject
   const sortObject = {};
 
-  if (req.query.sort === "price-desc") {
-    sortObject.product_price = "desc";
-  } else if (req.query.sort === "price-asc") {
-    sortObject.product_price = "asc";
+  if (req.query.sort === 'price-desc') {
+    sortObject.product_price = 'desc';
+  } else if (req.query.sort === 'price-asc') {
+    sortObject.product_price = 'asc';
   }
 
   // console.log(sortObject);
@@ -146,7 +146,7 @@ router.get("/offers", async (req, res) => {
 
   const offers = await Offer.find(filtersObject)
     .sort(sortObject)
-    .select("product_name product_price")
+    .select('product_name product_price')
     .limit(limit)
     .skip((page - 1) * limit);
 
@@ -155,12 +155,12 @@ router.get("/offers", async (req, res) => {
   res.json({ count: count, offers: offers });
 });
 
-router.get("/offer/:id", async (req, res) => {
+router.get('/offer/:id', async (req, res) => {
   console.log(req.params);
   try {
     const offer = await Offer.findById(req.params.id).populate({
-      path: "owner",
-      select: "account.username email",
+      path: 'owner',
+      select: 'account.username email'
     });
     res.json(offer);
   } catch (error) {

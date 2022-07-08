@@ -1,23 +1,30 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
+//gestion des variables d'environnements
+const dotenv = require('dotenv');
+dotenv.config();
+
+const express = require('express');
+const mongoose = require('mongoose');
+
+//gestion des erreurs CORS
+const cors = require('cors');
+app.use(cors());
 
 //connexion à la bdd
-mongoose.connect("mongodb://localhost/vinted-orion22");
+mongoose.connect(process.env.MONGODB_ATLAS_URI);
 
 const app = express();
 app.use(express.json());
 
 //import des routes users et offers
-const usersRoutes = require("./routes/users");
+const usersRoutes = require('./routes/users');
 app.use(usersRoutes);
-const offersRoutes = require("./routes/offers");
+const offersRoutes = require('./routes/offers');
 app.use(offersRoutes);
 
-app.all("*", (req, res) => {
-  res.status(400).json("Route introuvable");
+app.all('*', (req, res) => {
+  res.status(400).json('Route introuvable');
 });
 
-app.listen(3000, () => {
-  console.log("Server has started ! 🤙");
+app.listen(process.env.PORT, () => {
+  console.log('Server has started ! 🤙');
 });
