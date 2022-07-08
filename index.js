@@ -2,18 +2,19 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
+//import du fichier cors
+const cors = require('cors');
+
 const express = require('express');
 const mongoose = require('mongoose');
 
 //gestion des erreurs CORS
-const cors = require('cors');
+const app = express();
 app.use(cors());
+app.use(express.json());
 
 //connexion à la bdd
 mongoose.connect(process.env.MONGODB_URI);
-
-const app = express();
-app.use(express.json());
 
 //import des routes users et offers
 const usersRoutes = require('./routes/users');
