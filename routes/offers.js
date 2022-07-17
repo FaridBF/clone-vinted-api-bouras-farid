@@ -16,6 +16,11 @@ const User = require('../models/User');
 // 2 Créer une offre sans ref avec une photo
 // 3 Créer une offre avec une ref avec une photo et avec le middleware
 
+/*
+ * Convertir un fichier au format base 64
+ * @param {*} file
+ * @returns
+ */
 const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString('base64')}`;
 };
@@ -27,8 +32,9 @@ const isAuthenticated = async (req, res, next) => {
     const user = await User.findOne({
       token: req.headers.authorization.replace('Bearer ', '')
     });
-    // Cette condition sert à vérifier si j'envoie un token valide !
 
+    // Cette condition sert à vérifier si j'envoie un token valide !
+    // console.log(user);
     if (user) {
       //Mon token est valide et je peux continuer
       //J'envoie les infos sur mon user à la route /offer/publish
@@ -100,8 +106,9 @@ router.get('/offers', async (req, res) => {
     filtersObject.product_price = { $gte: req.query.priceMin };
   }
 
-  //Si j'ai une déjà une clé product_price dans min object objectFilter
+  //Si j'ai une déjà une clé product_price dans mon object objectFilter
   if (req.query.priceMax) {
+    // ?
     if (filtersObject.product_price) {
       filtersObject.product_price.$lte = req.query.priceMax;
     } else {
@@ -113,7 +120,7 @@ router.get('/offers', async (req, res) => {
 
   //gestion du tri avec l'objet sortObject
   const sortObject = {};
-
+  // 2 choix possibles uniquement
   if (req.query.sort === 'price-desc') {
     sortObject.product_price = 'desc';
   } else if (req.query.sort === 'price-asc') {
@@ -134,8 +141,11 @@ router.get('/offers', async (req, res) => {
   // (3-1) * 3 = skip 6 ==> Page 3
   // (4-1) * 3 = skip 9 ==> Page 4
 
+  //limit par default à 3
   let limit = 3;
+  //reqûete du front avec le limit (ex attribut limit à 4 dans postman)
   if (req.query.limit) {
+    // on redfinit la variable limit à 4 via la requête entrante
     limit = req.query.limit;
   }
 

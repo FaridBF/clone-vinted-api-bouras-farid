@@ -22,6 +22,8 @@ app.use(usersRoutes);
 const offersRoutes = require('./routes/offers');
 app.use(offersRoutes);
 
+// pour l'ensembles des autres routes (affiche route introuvable)
+// ne pas disposer tout en haut car sera lu avant les autres routes
 app.all('*', (req, res) => {
   res.status(400).json('Route introuvable');
 });
