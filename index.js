@@ -1,29 +1,22 @@
-//gestion des variables d'environnements
 const dotenv = require('dotenv');
 dotenv.config();
 
-//import du fichier cors
 const cors = require('cors');
 
 const express = require('express');
 const mongoose = require('mongoose');
 
-//gestion des erreurs CORS
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-//connexion à la bdd
 mongoose.connect(process.env.MONGODB_URI);
 
-//import des routes users et offers
 const usersRoutes = require('./routes/users');
 app.use(usersRoutes);
 const offersRoutes = require('./routes/offers');
 app.use(offersRoutes);
 
-// pour l'ensembles des autres routes (affiche route introuvable)
-// ne pas disposer tout en haut car sera lu avant les autres routes
 app.all('*', (req, res) => {
   res.status(400).json('Route introuvable');
 });

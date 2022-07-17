@@ -12,32 +12,17 @@ cloudinary.config({
 const Offer = require('../models/Offer');
 const User = require('../models/User');
 
-// 1 Créer une offre sans ref sans photo et sans le middleware
-// 2 Créer une offre sans ref avec une photo
-// 3 Créer une offre avec une ref avec une photo et avec le middleware
-
-/*
- * Convertir un fichier au format base 64
- * @param {*} file
- * @returns
- */
 const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString('base64')}`;
 };
 
 const isAuthenticated = async (req, res, next) => {
-  //   console.log(req.headers);
-  // Cette condition sert à vérifier si j'envoie un token
   if (req.headers.authorization) {
     const user = await User.findOne({
       token: req.headers.authorization.replace('Bearer ', '')
     });
 
-    // Cette condition sert à vérifier si j'envoie un token valide !
-    // console.log(user);
     if (user) {
-      //Mon token est valide et je peux continuer
-      //J'envoie les infos sur mon user à la route /offer/publish
       req.user = user;
       next();
     } else {
@@ -70,20 +55,13 @@ router.post(
         owner: req.user
       });
 
-      //J'envoie mon image sur cloudinary, juste après avoir crée en DB mon offre
-      // Comme ça j'ai accès à mon ID
       const result = await cloudinary.uploader.upload(
         convertToBase64(req.files.picture),
         {
           folder: 'vinted/offers',
           public_id: `${req.body.title} - ${newOffer._id}`
-          //Old WAY JS
-          // public_id: req.body.title + " " + newOffer._id,
         }
       );
-
-      // console.log(result);
-      //je viens rajouter l'image à mon offre
       newOffer.product_image = result;
 
       await newOffer.save();
@@ -106,7 +84,6 @@ router.get('/offers', async (req, res) => {
     filtersObject.product_price = { $gte: req.query.priceMin };
   }
 
-  //Si j'ai une déjà une clé product_price dans mon object objectFilter
   if (req.query.priceMax) {
     // ?
     if (filtersObject.product_price) {
@@ -116,36 +93,15 @@ router.get('/offers', async (req, res) => {
     }
   }
 
-  // console.log(filtersObject);
-
-  //gestion du tri avec l'objet sortObject
   const sortObject = {};
-  // 2 choix possibles uniquement
   if (req.query.sort === 'price-desc') {
     sortObject.product_price = 'desc';
   } else if (req.query.sort === 'price-asc') {
     sortObject.product_price = 'asc';
   }
 
-  // console.log(sortObject);
-
-  //gestion de la pagination
-  //On a par défaut 3 annonces par page
-  //Si je suis sur la page 1 => je devrais skip 0 annonces
-  //Si je suis sur la page 2 => je devrais skip 3 annonces
-  //Si je suis sur la page 3 => je devrais skip 6 annonces
-  //Si je suis sur la page 4 => je devrais skip 9 annonces
-
-  // (1-1) * 3 = skip 0 ==> Page 1
-  // (2-1) * 3 = skip 3 ==> Page 2
-  // (3-1) * 3 = skip 6 ==> Page 3
-  // (4-1) * 3 = skip 9 ==> Page 4
-
-  //limit par default à 3
   let limit = 3;
-  //reqûete du front avec le limit (ex attribut limit à 4 dans postman)
   if (req.query.limit) {
-    // on redfinit la variable limit à 4 via la requête entrante
     limit = req.query.limit;
   }
 
